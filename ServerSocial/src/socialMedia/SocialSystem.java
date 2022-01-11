@@ -34,10 +34,13 @@ public class SocialSystem implements SocialSystemRemoteMethods {
 				}
 			}else {
 				System.out.println("Un guest ha provato ad effettuare il login (utente non trovato)");
+				return null;
 			}
 		}else {
 			System.out.println("Un guest ha provato ad effettuare il login (utente non registrato)");
+			return null;
 		}
+		return null;
 	}//Metodo RMI che permette attraverso una richiesta del client di eseguire il login
 	
 	public boolean isRegister(String username) {
