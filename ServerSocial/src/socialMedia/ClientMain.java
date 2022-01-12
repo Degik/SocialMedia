@@ -44,7 +44,6 @@ public class ClientMain extends RemoteObject implements NotifyClientInterface{
 			tcpPortStr = prop.getProperty("TCPPORT");
 			registryPortStr = prop.getProperty("REGISTRYPORT");
 			serverName = prop.getProperty("SERVERNAME");
-			serverClassName = prop.getProperty("CLASSNAME");
 			
 			int registryPortInt = Integer.parseInt(registryPortStr);
 			int tcpPortInt = Integer.parseInt(tcpPortStr);
@@ -55,7 +54,7 @@ public class ClientMain extends RemoteObject implements NotifyClientInterface{
 			NotifyClientInterface callObj; //
 			NotifyClientInterface callStub;//
 			Registry registry = LocateRegistry.getRegistry(registryPortInt);
-			serverStub = (ServerInterface) registry.lookup(serverClassName);
+			serverStub = (ServerInterface) registry.lookup(serverName);
 			callObj = this;
 			callStub = (NotifyClientInterface) UnicastRemoteObject.exportObject((Remote) callObj, 0);
 			

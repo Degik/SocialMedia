@@ -2,6 +2,10 @@ package socialMedia;
 
 import java.util.*;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
+
 public class User {
 	
 	/*
@@ -16,11 +20,25 @@ public class User {
 	private String username;
 	private String password;
 	private int userId;
-	private Set<Post> posts = null;
-	private Set<Integer> followers = null;
-	private LinkedList<String> tags = null;
+	
+	//@JsonProperty("posts")
+	private ArrayList<Post> posts = null;
+	
+	//@JsonProperty("followers")
+	private ArrayList<Integer> followers = null;
+	
+	//@JsonProperty("tags")
+	private ArrayList<String> tags = null;
 	
 	private static int nextId = 0;
+	
+	public User() { 
+		/*
+		 * Jackson neccesita' di un costruttore vuoto o del 
+		 * @JsonProperty("example") 
+		 * per riuscire a costruire il modello
+		 */
+	}
 	
 	public User(String username, String password, LinkedList<String> tags) {
 		if(username == null || password == null || tags == null) {
@@ -28,15 +46,15 @@ public class User {
 		}
 		this.username = username;
 		this.password = password;
-		posts = new HashSet<Post>();
-		followers = new HashSet<Integer>();
-		this.tags = tags;
+		posts = new ArrayList<Post>();
+		followers = new ArrayList<Integer>();
+		this.tags = new ArrayList<String>(tags);
 		userId = nextId; // userId
 		nextId++;		 // aumento con nextId
 	}
 	
 	public User(String username, String password, // username, password, posts, followers, userId
-			Set<Post> posts, Set<Integer> followers, int userId) {
+			ArrayList<Post> posts, ArrayList<Integer> followers, ArrayList<String> tags, int userId) {
 		//
 		if(username == null || password == null) {
 			throw new NullPointerException();
@@ -45,6 +63,8 @@ public class User {
 		this.password = password;
 		this.posts = posts;
 		this.followers = followers;
+		this.tags = tags;
+		this.userId = userId;
 	}
 	
 	public User(User u) {
@@ -65,8 +85,8 @@ public class User {
 		return password;
 	}
 	
-	public Set<Post> getPosts() {
-		return new HashSet<>(posts);
+	public ArrayList<Post> getPosts() {
+		return new ArrayList<>(posts);
 	}
 	
 	public Post getPost(int postId) {
@@ -78,8 +98,12 @@ public class User {
 		return null;
 	}
 	
-	public Set<Integer> getFollowers(){
-		return new HashSet<>(followers);
+	public ArrayList<Integer> getFollowers(){
+		return new ArrayList<>(followers);
+	}
+	
+	public ArrayList<String> getTags(){
+		return new ArrayList<>(tags);
 	}
 	
 	public boolean getFollower(int userId) {
