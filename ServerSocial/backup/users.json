@@ -1,0 +1,22 @@
+[ {
+  "username" : "Degik",
+  "password" : "12345",
+  "userId" : 0,
+  "posts" : [ ],
+  "followers" : [ ],
+  "tags" : [ "cinema", "casa", "computer", "uni" ]
+}, {
+  "username" : "Isa",
+  "password" : "fab",
+  "userId" : 1,
+  "posts" : [ ],
+  "followers" : [ ],
+  "tags" : [ "cinema", "vestiti", "covid" ]
+}, {
+  "username" : "Reb",
+  "password" : "lore",
+  "userId" : 2,
+  "posts" : [ ],
+  "followers" : [ ],
+  "tags" : [ "casa", "uni" ]
+} ]
