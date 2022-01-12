@@ -3,7 +3,7 @@ package socialMedia;
 import java.util.*;
 
 public class Post {
-	private int author;
+	private String author;
 	private int postId;
 	private String title;
 	private String text;
@@ -22,6 +22,10 @@ public class Post {
 		this.postId = nextId;
 		nextId++;
 		this.comments = new HashSet<>();
+	}
+	
+	public String getAuthor() {
+		return author;
 	}
 	
 	public int getPostId() {

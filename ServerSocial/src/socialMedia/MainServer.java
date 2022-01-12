@@ -7,7 +7,6 @@ import java.rmi.server.RemoteObject;
 import java.rmi.server.UnicastRemoteObject;
 
 import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper; // Grazie a questa libreria posso gestire i json in maniera veloce
@@ -50,6 +49,7 @@ public class MainServer extends RemoteObject implements ServerInterface{
 	
 	public static void start(MainServer serverTh) {
 		// impostazioni server
+		@SuppressWarnings("unused") // not used
 		String server, tcpPortStr, udpPort, multiCast, multiCastPort, registryHost, registryPortStr, timeout, serverName, serverClassName;
 		Properties prop = new Properties();
 		try {
@@ -80,10 +80,10 @@ public class MainServer extends RemoteObject implements ServerInterface{
 		int tcpPortInt = Integer.parseInt(tcpPortStr);
 				
 		//Creazione del server
-		SocialSystem socialSystem = new SocialSystem();
 		if(!serverTh.manageBackup()) {
 			System.err.println("Server [Errore di caricamento del backup]");
 		}
+		System.out.println("Server [Backup pronto]");
 		
 		//Inizio RMI
 		// Creazione dello stub
@@ -93,7 +93,7 @@ public class MainServer extends RemoteObject implements ServerInterface{
 			LocateRegistry.createRegistry(registryPortInt);
 			Registry registro = LocateRegistry.getRegistry(registryPortInt);
 			registro.rebind(serverName, stub);
-			System.err.println("Server pronto");
+			//System.out.println("Server pronto");
 		} catch (RemoteException e) {
 			// Errore in caso di RemoteException
 			System.err.println("Errore di comunicazione ");
@@ -212,6 +212,33 @@ public class MainServer extends RemoteObject implements ServerInterface{
 			}
 		}
 		return true;
+	}
+
+	@Override
+	public boolean login(String username, String password) throws RemoteException {
+		if(username == null || password == null) {
+			throw new NullPointerException();
+		}
+		for(User user : users) {
+			if(user.getUsername().equals(username)) {
+				if(user.getPassword().equals(password)) {
+					System.out.println("Server [Un utente ha effettuato l'accesso " + user.getUsername() + "]");
+					return true;
+				} else {
+					System.out.println("Server [Un utente ha inserito la password sbagliata]");
+				}
+			} else {
+				System.out.println("Server [Un utente ha inserito il nickname errato]");
+			}
+		}
+		System.out.println("Server [Un guest ha provato ad accedere]");
+		return false;
+	}
+
+	@Override
+	public boolean logout(String username) throws RemoteException {
+		//
+		return false;
 	}
 	
 	

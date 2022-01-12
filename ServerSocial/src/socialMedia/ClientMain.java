@@ -14,17 +14,24 @@ import java.net.InetSocketAddress;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.SocketChannel;
 
+@SuppressWarnings("unused")
 public class ClientMain extends RemoteObject implements NotifyClientInterface{
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private static SocketChannel socketChannel;
 	private User user = null;
-	private Set<User> users = null;
-	private Set<Post> posts = null;
+	private ArrayList<String> users;
+	private ArrayList<String> posts;
+	private String username;
 	
 	public ClientMain() {
 		super();
-		users = new HashSet<>();
-		posts = new HashSet<>();
+		users = null;
+		posts = null;
+		username = null; // Un utente che non ha effettuato il login
 	}
 	
 	public void start() {
@@ -32,8 +39,6 @@ public class ClientMain extends RemoteObject implements NotifyClientInterface{
 		Properties prop = new Properties();
 		
 		boolean state = true; // Serve per uscire dal while del menu client
-		boolean isLogin = false; // Serve per verificare se l'utente e' loggato
-		// Questo mi permette di limitare la richiesta dei comandi
 		
 		try {
 			
@@ -70,6 +75,7 @@ public class ClientMain extends RemoteObject implements NotifyClientInterface{
 			}
 			
 			System.out.println("Benvenuto su Social\n\n");
+			@SuppressWarnings("resource") // sc is not closed
 			Scanner sc = new Scanner(System.in);
 			help();
 			System.out.println();
@@ -85,7 +91,7 @@ public class ClientMain extends RemoteObject implements NotifyClientInterface{
 				
 				switch(command[0]) {
 				case "register":
-					if(isLogin) {
+					if(username != null) {
 						System.out.println("< Per registrarti esegui il logout");
 						break;
 					}
@@ -114,7 +120,7 @@ public class ClientMain extends RemoteObject implements NotifyClientInterface{
 							j++;
 						}
 						if(!serverStub.registerUser(command[1], command[2], tags)) {
-							System.out.println("Utente gia' presente");
+							System.out.println("< Username gia' in uso");
 							break;
 						} else {
 							System.out.println("< Registrazione avvenuta con successo");
@@ -122,7 +128,7 @@ public class ClientMain extends RemoteObject implements NotifyClientInterface{
 						}
 					}
 				case "login":
-					if(isLogin) {
+					if(username != null) {
 						System.out.println("< Per entrare con un altro utente esegui il logout");
 						break;
 					}
@@ -130,14 +136,27 @@ public class ClientMain extends RemoteObject implements NotifyClientInterface{
 						System.out.println("< Devi usare login <username> <password>");
 						break;
 					}
-					/*
-					if(!serverStub.isRegister(command[1])) {
-						System.out.println("Nessun nome utente: " + command[1]);
+					if(!serverStub.login(command[1], command[2])) {
+						System.out.println("< Nome utente o password errati");
 						break;
-					}*/
-					//if()
+					} else {
+						username = command[1];
+						serverStub.registerForCallBacks(callStub); // registrazione CallBack
+						System.out.println("< Accesso effettuato " + username);
+						break;
+					}
+				case "logout":
+					if(username == null) {
+						System.out.println("< Per effettuare il logout devi prima accedere");
+						break;
+					}
+					if(command.length < 1) {
+						System.out.println("< Devi scrivere logout");
+						break;
+					}
+					// Da continuare
 				default:
-					System.out.println("> Comando non valido!");
+					System.out.println("< Comando non valido!");
 					break;
 				}
 				
@@ -181,6 +200,11 @@ public class ClientMain extends RemoteObject implements NotifyClientInterface{
 		System.out.println("    quit [termina il programma]");
 	}
 	
+	/*public String command(String command) throws IOException {
+		ByteBuffer buff = ByteBuffer.allocate(256); // allocate 256 byte
+		buff.clear(); 								// set pos 0
+		
+	}*/
 
 	public static void main(String[] args) {
 		ClientMain client = new ClientMain();
@@ -188,15 +212,13 @@ public class ClientMain extends RemoteObject implements NotifyClientInterface{
 	}
 
 	@Override
-	public void notifyUsers(Set<String> users) throws RemoteException {
-		// TODO Auto-generated method stub
-		
+	public void notifyUsers(ArrayList<String> users) throws RemoteException {
+		this.users = users;
 	}
 
 	@Override
-	public void notifyPost(Set<String> posts) throws RemoteException {
-		// TODO Auto-generated method stub
-		
+	public void notifyPost(ArrayList<String> posts) throws RemoteException {
+		this.posts = posts;
 	}
 
 }

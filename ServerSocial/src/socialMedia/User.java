@@ -2,10 +2,6 @@ package socialMedia;
 
 import java.util.*;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-
-
 public class User {
 	
 	/*
@@ -83,6 +79,12 @@ public class User {
 	
 	public String getPassword() {
 		return password;
+	}
+	
+	public boolean addPost(Post p) {
+		if(p == null)
+			throw new NullPointerException();
+		return posts.add(p);
 	}
 	
 	public ArrayList<Post> getPosts() {
