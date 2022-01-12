@@ -52,4 +52,18 @@ public class Post {
 		}
 		return false;
 	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if(o == null) return false;
+		if(this == o) return true;
+		if(!(o instanceof Post)) return false;
+		Post ps = (Post) o;
+		return postId == ps.postId;
+	}
+	
+	@Override
+	public int hashCode() {
+		return postId;
+	}
 }

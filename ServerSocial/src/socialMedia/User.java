@@ -18,17 +18,19 @@ public class User {
 	private int userId;
 	private Set<Post> posts = null;
 	private Set<Integer> followers = null;
+	private LinkedList<String> tags = null;
 	
 	private static int nextId = 0;
 	
-	public User(String username, String password) {
-		if(username == null || password == null) {
+	public User(String username, String password, LinkedList<String> tags) {
+		if(username == null || password == null || tags == null) {
 			throw new NullPointerException();
 		}
 		this.username = username;
 		this.password = password;
 		posts = new HashSet<Post>();
 		followers = new HashSet<Integer>();
+		this.tags = tags;
 		userId = nextId; // userId
 		nextId++;		 // aumento con nextId
 	}
@@ -49,6 +51,10 @@ public class User {
 		if(u == null) {
 			throw new NullPointerException();
 		}
+	}
+	
+	public int getUserId() {
+		return userId;
 	}
 	
 	public String getUsername() {
@@ -84,4 +90,19 @@ public class User {
 		}
 		return false;
 	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if(o == null) return false;
+		if(this == o) return true;
+		if(!(o instanceof User)) return false;
+		User us = (User) o;
+		return userId == us.userId;
+	}
+	
+	@Override
+	public int hashCode() {
+		return userId;
+	}
+	
 }
