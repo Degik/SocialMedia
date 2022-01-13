@@ -13,9 +13,12 @@ import com.fasterxml.jackson.databind.ObjectMapper; // Grazie a questa libreria 
 import com.fasterxml.jackson.databind.SerializationFeature;
 import java.io.*;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class MainServer extends RemoteObject implements ServerInterface{
@@ -26,9 +29,11 @@ public class MainServer extends RemoteObject implements ServerInterface{
 	private static final long serialVersionUID = -297225371107007564L;
 	private static ArrayList<NotifyClientInterface> clients = null;
 	private ArrayList<User> users = null;
+	private HashMap<String, ArrayList<String>> followers = null;
 	private final File backupDir;
 	private final File usersJson;
 	private final ObjectMapper objectMapper;
+	private int nextClientId = 0;
 	
 	public static void main(String[] args) {
 		MainServer serverTh = new MainServer();
@@ -39,6 +44,7 @@ public class MainServer extends RemoteObject implements ServerInterface{
 		super();
 		clients = new ArrayList<>(); // Lista dei client connessi al server
 		users = new ArrayList<>(); 	 // Set contenente gli utenti registrati al sistema
+		followers = new HashMap<>();
 		backupDir = new File("backup");
 		usersJson = new File("backup/users.json");
 		objectMapper = new ObjectMapper();
@@ -121,7 +127,7 @@ public class MainServer extends RemoteObject implements ServerInterface{
 			e.printStackTrace();
 			return;
 		}
-				
+		
 		System.out.println("Server [online]");
 		
 		while(true) {
@@ -132,6 +138,50 @@ public class MainServer extends RemoteObject implements ServerInterface{
 				e.printStackTrace();
 				break;
 			}
+			
+			Set<SelectionKey> readKeys = selector.selectedKeys();
+			Iterator<SelectionKey> iterator = readKeys.iterator();
+			
+			while(iterator.hasNext()) {
+				SelectionKey key = iterator.next();
+				iterator.remove();
+				try {
+					if(key.isAcceptable()) {
+						ServerSocketChannel serverSocket = (ServerSocketChannel) key.channel();
+						SocketChannel clientSocket = serverSocket.accept();
+						clientSocket.configureBlocking(false);
+						clientSocket.register(selector, SelectionKey.OP_READ);
+					} else if (key.isReadable()) {
+						SocketChannel clientSocket = (SocketChannel) key.channel();
+						ByteBuffer buffRecv = ByteBuffer.allocate(256);
+						clientSocket.read(buffRecv);
+						buffRecv.flip();
+						String request = StandardCharsets.US_ASCII.decode(buffRecv).toString(); // Trasformo in stringa i byte ricevuti
+						String[] command = request.split("\\s+");
+						if(command[0].equals("quit")) {
+							key.channel().close();
+							key.cancel();
+							continue;
+						}
+						String result = serverTh.startCommand(command);
+						ByteBuffer buffSend = ByteBuffer.allocate(256);
+						buffSend.put(result.getBytes());
+						buffSend.flip();
+						key.interestOps(SelectionKey.OP_WRITE);
+						key.attach(buffSend);
+					} else if (key.isWritable()) {
+						SocketChannel clientSocket = (SocketChannel) key.channel();
+						ByteBuffer buffSend = (ByteBuffer) key.attachment();
+						clientSocket.write(buffSend);
+						key.interestOps(SelectionKey.OP_READ);
+						key.attach(null);
+					}
+				} catch(IOException e) {
+					e.printStackTrace();
+					return;
+				}
+			}
+			
 		}
 	}
 
@@ -213,33 +263,78 @@ public class MainServer extends RemoteObject implements ServerInterface{
 		}
 		return true;
 	}
-
-	@Override
-	public boolean login(String username, String password) throws RemoteException {
-		if(username == null || password == null) {
-			throw new NullPointerException();
-		}
-		for(User user : users) {
-			if(user.getUsername().equals(username)) {
-				if(user.getPassword().equals(password)) {
-					System.out.println("Server [Un utente ha effettuato l'accesso " + user.getUsername() + "]");
-					return true;
+	
+	public String startCommand(String[] command) {
+		switch(command[0]) {
+		case "login":
+			String username = command[1];
+			String password = command[2];
+			for(User user : users) {
+				if(user.getUsername().equals(username)) {
+					if(user.getPassword().equals(password)) {
+						System.out.println("Server [Un utente ha effettuato l'accesso " + user.getUsername() + "]");
+						updateCallBack(username);
+						return "Accesso effettuato come " + username;
+					} else {
+						System.out.println("Server [Un utente ha inserito la password sbagliata]");
+						return null;
+					}
 				} else {
-					System.out.println("Server [Un utente ha inserito la password sbagliata]");
+					System.out.println("Server [Un utente ha inserito il nickname errato]");
+					return null;
 				}
-			} else {
-				System.out.println("Server [Un utente ha inserito il nickname errato]");
 			}
+			System.out.println("Server [Un guest ha provato ad accedere]");
+			return null;
+		case "logout":
+			return null;
 		}
-		System.out.println("Server [Un guest ha provato ad accedere]");
-		return false;
-	}
-
-	@Override
-	public boolean logout(String username) throws RemoteException {
-		//
-		return false;
+		return null;
 	}
 	
+	public void updateCallBack(String username) {
+		for(String k : followers.keySet()) { // Aggiorno la lista globale dei followers per ogni utente
+			User user = getUser(k);
+			ArrayList<String> followersList = user.getFollowers();
+			followers.put(k, followersList);
+		}
+		NotifyClientInterface logout = null;
+		for(NotifyClientInterface client : clients) {
+			for(User user : users) {
+				try {
+					if(client.getClientId().equals(user.getClientId())) {
+						client.notifyFollowers(user.getFollowers()); // Lista delle persone che seguono user
+					}
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		System.out.println("Server [CallBack " + username + " aggiornati");
+	}
+	
+	@Override
+	public String updateClientIdList(String username) {
+		User user = getUser(username);
+		String userClientId = user.getClientId();
+		if(userClientId == null) {
+			String clientId = Integer.toString(nextClientId);
+			nextClientId++;
+			user.setClientId(clientId);
+			return clientId;
+		}
+		return userClientId;
+	}
+	
+	public User getUser(String username) {
+		if(username == null)
+			throw new NullPointerException();
+		for(User user : users) {
+			if(user.getUsername().equals(username))
+				return user;
+		}
+		return null;
+	}// Ricaviamo l'oggetto User da username
 	
 }

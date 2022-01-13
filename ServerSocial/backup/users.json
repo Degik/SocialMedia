@@ -2,21 +2,24 @@
   "username" : "Degik",
   "password" : "12345",
   "userId" : 0,
+  "clientId" : null,
   "posts" : [ ],
   "followers" : [ ],
-  "tags" : [ "cinema", "casa", "computer", "uni" ]
+  "tags" : [ "cinema", "computer", "uni", "casa", "null" ]
 }, {
   "username" : "Isa",
   "password" : "fab",
   "userId" : 1,
+  "clientId" : null,
   "posts" : [ ],
   "followers" : [ ],
-  "tags" : [ "cinema", "vestiti", "covid" ]
+  "tags" : [ "cinema", "vestite", "uni", "covid", "null" ]
 }, {
   "username" : "Reb",
   "password" : "lore",
   "userId" : 2,
+  "clientId" : null,
   "posts" : [ ],
   "followers" : [ ],
-  "tags" : [ "casa", "uni" ]
+  "tags" : [ "uni", "covid", "null" ]
 } ]

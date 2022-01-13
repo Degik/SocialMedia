@@ -16,12 +16,13 @@ public class User {
 	private String username;
 	private String password;
 	private int userId;
+	private String clientId;
 	
 	//@JsonProperty("posts")
 	private ArrayList<Post> posts = null;
 	
 	//@JsonProperty("followers")
-	private ArrayList<Integer> followers = null;
+	private ArrayList<String> followers = null;
 	
 	//@JsonProperty("tags")
 	private ArrayList<String> tags = null;
@@ -43,14 +44,14 @@ public class User {
 		this.username = username;
 		this.password = password;
 		posts = new ArrayList<Post>();
-		followers = new ArrayList<Integer>();
+		followers = new ArrayList<String>();
 		this.tags = new ArrayList<String>(tags);
 		userId = nextId; // userId
 		nextId++;		 // aumento con nextId
 	}
 	
 	public User(String username, String password, // username, password, posts, followers, userId
-			ArrayList<Post> posts, ArrayList<Integer> followers, ArrayList<String> tags, int userId) {
+			ArrayList<Post> posts, ArrayList<String> followers, ArrayList<String> tags, int userId) {
 		//
 		if(username == null || password == null) {
 			throw new NullPointerException();
@@ -71,6 +72,14 @@ public class User {
 	
 	public int getUserId() {
 		return userId;
+	}
+	
+	public String getClientId() {
+		return clientId;
+	}
+	
+	public void setClientId(String clientId) {
+		this.clientId = clientId;
 	}
 	
 	public String getUsername() {
@@ -100,7 +109,7 @@ public class User {
 		return null;
 	}
 	
-	public ArrayList<Integer> getFollowers(){
+	public ArrayList<String> getFollowers(){
 		return new ArrayList<>(followers);
 	}
 	
@@ -108,9 +117,9 @@ public class User {
 		return new ArrayList<>(tags);
 	}
 	
-	public boolean getFollower(int userId) {
-		for(Integer fl : followers) {
-			if(fl == userId) {
+	public boolean getFollower(String username) {
+		for(String fl : followers) {
+			if(fl.equals(username)) {
 				return true;
 			}
 		}
