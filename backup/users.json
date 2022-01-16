@@ -1,0 +1,75 @@
+[ {
+  "username" : "Degik",
+  "password" : "12345",
+  "userId" : 0,
+  "clientId" : "0",
+  "posts" : [ {
+    "author" : "Degik",
+    "postId" : 0,
+    "title" : "Primo post",
+    "text" : "Questo e' il primo post",
+    "goodQuotes" : [ ],
+    "badQuotes" : [ ],
+    "comments" : [ ],
+    "goodQuotesSize" : 0,
+    "badQuotesSize" : 0
+  }, {
+    "author" : "Degik",
+    "postId" : 1,
+    "title" : "Secondo post",
+    "text" : "Questo e' secondo post",
+    "goodQuotes" : [ ],
+    "badQuotes" : [ ],
+    "comments" : [ {
+      "authorComment" : "Degik",
+      "commentId" : 1,
+      "text" : "Questo e' bello"
+    }, {
+      "authorComment" : "Degik",
+      "commentId" : 2,
+      "text" : "E' bello poter commentare"
+    } ],
+    "goodQuotesSize" : 0,
+    "badQuotesSize" : 0
+  } ],
+  "followers" : [ ],
+  "following" : [ "Isa" ],
+  "tags" : [ "cinema", "computer", "null" ]
+}, {
+  "username" : "Isa",
+  "password" : "fab",
+  "userId" : 1,
+  "clientId" : null,
+  "posts" : [ {
+    "author" : "Isa",
+    "postId" : 2,
+    "title" : "Terzo post",
+    "text" : "Questo e' il terzo post",
+    "goodQuotes" : [ ],
+    "badQuotes" : [ "Degik" ],
+    "comments" : [ ],
+    "goodQuotesSize" : 0,
+    "badQuotesSize" : 1
+  } ],
+  "followers" : [ "Degik" ],
+  "following" : [ ],
+  "tags" : [ "cinema", "covid", "null" ]
+}, {
+  "username" : "Reb",
+  "password" : "lore",
+  "userId" : 2,
+  "clientId" : null,
+  "posts" : [ ],
+  "followers" : [ ],
+  "following" : [ ],
+  "tags" : [ "computer", "null" ]
+}, {
+  "username" : "Marco",
+  "password" : "12345",
+  "userId" : 3,
+  "clientId" : null,
+  "posts" : [ ],
+  "followers" : [ ],
+  "following" : [ ],
+  "tags" : [ "casa", "null" ]
+} ]
