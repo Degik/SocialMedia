@@ -477,6 +477,10 @@ public class ClientMain extends RemoteObject implements NotifyClientInterface{
 		System.out.println("     quit [termina il programma]");
 	}
 	
+	// Questo metodo prepare ed invia il buffer contenente l'array String di commandi
+	// Ovviamente vengono spediti come String command
+	// Invia il comando
+	// Aspetta la risposta
 	public String requestCommand(String command) throws IOException {
 		ByteBuffer buffSend = ByteBuffer.allocate(256); // allocate 256 byte
 		buffSend.clear(); 								// set pos 0

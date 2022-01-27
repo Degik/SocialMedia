@@ -284,7 +284,9 @@ public class MainServer extends RemoteObject implements ServerInterface{
 	}
 	
 	private boolean manageBackup() {
+		// Verifico se esite la cartella backup
 		if(!backupDir.exists()) {
+			// Se non esiste la creo
 			System.out.println("Server [Nessun backup trovato]");
 			if(!backupDir.mkdir()) {
 				System.err.println("Server [Errore nella creazione della cartella di backup]");
@@ -292,6 +294,7 @@ public class MainServer extends RemoteObject implements ServerInterface{
 			}
 			System.out.println("Server [Cartella backup creata]");
 			try {
+				// Creo al suo interno tutti i file Json
 				usersJson.createNewFile();
 				postIdJson.createNewFile();
 				commentIdJson.createNewFile();
@@ -306,6 +309,8 @@ public class MainServer extends RemoteObject implements ServerInterface{
 			nextCommentId = 0;
 			nextUserId = 0;
 		} else {
+			// Se la lunghezza di ogni file e' diversa da 0 allora vuol dire che c'e' contenuto
+			// Prendo il contenuto e ripristino lo stato della della struttura users
 			if(usersJson.length() != 0) {
 				try {
 					//users = objectMapper.readValue(usersJson, objectMapper.getTypeFactory().constructCollectionType(ArrayList.class, User.class));
@@ -320,6 +325,7 @@ public class MainServer extends RemoteObject implements ServerInterface{
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+			// Altrimenti il file e' vuoto, quindi inizializzo la struttura
 			} else {
 				users = new ArrayList<>();
 			}
@@ -375,10 +381,16 @@ public class MainServer extends RemoteObject implements ServerInterface{
 		return true;
 	}
 	
+	
+	//StartCommand raccoglie una array String di comandi e si comporta di conseguenza aggiornando le informazioni dei vari client
+	// Effettua aggiornamenti dei backup e ritorna una risposta al client
+	// Il client potrebbe anche sfruttare come risposta le varizioni che il metodo updateCallBack (chiamato piu' volte in startCommand) crea nei propri callBack
 	public String startCommand(String[] command) throws RemoteException {
 		User user1 = null;
 		User user2 = null;
 		switch(command[0]) {
+		// case login
+		// Verifica che l'utente esista davvero altrimenti ritorna un errore
 		case "login":
 			String username = command[1];
 			String password = command[2];
@@ -403,7 +415,10 @@ public class MainServer extends RemoteObject implements ServerInterface{
 			}
 			System.out.println("Server [Un utente ha inserito il nickname errato]");
 			return "Username errato";
-		case "list": // Command list 
+			// Command list 
+			// A prescindere dal case list aggiorna le callBack
+			// Questo per essere sempre sicuro che anche i client siano al passo con le modifiche del social
+		case "list":
 			switch(command[1]) {
 			case "user":
 				System.out.println("Server [Un utente ha richiesto la lista utenti " + command[2] + "]");
@@ -439,6 +454,9 @@ public class MainServer extends RemoteObject implements ServerInterface{
 				System.out.println("Server [Backup effettuato]");
 				return "Ecco la lista following";
 			}
+			// case follow
+			// Verifica che l'utente che vogliamo seguire esista, altrimenti ritorna errore
+			// Ovviamente se dovessimo gia' seguire quell'utente ritornerebbe sempre un messaggio di errore
 		case "follow":
 			if(!isRegister(command[1])) {
 				System.out.println("Server [L'utente " + command[2] + " ha provato a seguire " + command[1] + ", ma l'utente non esiste]");
@@ -461,6 +479,9 @@ public class MainServer extends RemoteObject implements ServerInterface{
 			System.out.println("Server [Backup effettuato]");
 			System.out.println("Server [L'utente " + command[2] + " ha iniziato a seguire " + command[1] + "]");
 			return "Ora segui " + command[1];
+			// case unfollow
+			// Verifica che l'utente che vogliamo smettere di seguire esista, altrimenti ritorna errore
+			// Controlla se l'utente che non vogliamo seguire avesse noi come follower
 		case "unfollow":
 			if(!isRegister(command[1])) {
 				System.out.println("Server [L'utente " + command[2] + " voleva smettere di seguire " + command[1] + ", ma l'utente non esiste]");
@@ -486,6 +507,8 @@ public class MainServer extends RemoteObject implements ServerInterface{
 		case "blog":
 			updateCallBack(command[1]);
 			return "Ecco la lista dei tuoi post";
+			// case post
+			// Mi permette di creare un post con un titolo ed il testo
 		case "post":
 			// Non uso command[3] poiche' corrisponde a " "
 			String union = StringUtils.join(command, " ");
@@ -541,6 +564,9 @@ public class MainServer extends RemoteObject implements ServerInterface{
 				}
 			}
 			return "Non ho trovato nessun post con questo idPost";
+			// case rewin
+			// Questo crea una copia del post di un certo utente da mettere sul mio blog
+			// In questo caso io divento il proprietario della copia di tale post
 		case "rewin":
 			int idPost1 = Integer.parseInt(command[1]);
 			user1 = getUser(command[2]);
@@ -568,6 +594,8 @@ public class MainServer extends RemoteObject implements ServerInterface{
 				}
 			}
 			return "Post aggiunto al tuo blog";
+			// case rate
+			// In base ai casi aumento o dominuisci il voto del contatore newPeopleLikes
 		case "rate":
 			int idPost2 = Integer.parseInt(command[1]);
 			if(!checkPost(idPost2)) {
@@ -706,9 +734,9 @@ public class MainServer extends RemoteObject implements ServerInterface{
 						client.notifyFollowers(user.getFollowers()); // Lista delle persone che seguono user
 						client.notifyUsersList(usersListTag.get(user.getUsername())); // Lista degli utenti con tag in comune
 						client.notifyFollowing(user.getFollowing());
-						client.notifyPost(user.getPosts());
-						client.notifyFeedList(updateFeedList(user.getUsername()));
-						client.notifyHistory(user.getHistory());
+						client.notifyPost(user.getPosts()); // Restituisce la lista dei post dell'utente
+						client.notifyFeedList(updateFeedList(user.getUsername())); // Restituisce la lista feed dell'utente
+						client.notifyHistory(user.getHistory()); // Restituisce la lista transazioni
 					}
 				}
 			} catch(ConnectException e) {
@@ -732,6 +760,7 @@ public class MainServer extends RemoteObject implements ServerInterface{
 		usersListTag.put(username, checkTags(username));
 	}
 	
+	// checkTags restituisce la lista degli utenti con i tag in comune
 	public ArrayList<User> checkTags(String username){
 		User user = getUser(username);
 		ArrayList<String> userTag = new ArrayList<>(user.getTags());
@@ -757,6 +786,8 @@ public class MainServer extends RemoteObject implements ServerInterface{
 		return result;
 	}
 	
+	// Questo metodo e' molto importante perche' assegna un clientId a tutti quei client che effettuano il login
+	// Il clientId permette di sapere cosa inviare e a chi inviare determinate informazioni
 	@Override
 	public String updateClientIdList(String username) {
 		User user = getUser(username);
